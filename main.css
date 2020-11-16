@@ -1,0 +1,116 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+#default-example {
+  background: linear-gradient(skyblue, khaki);
+  perspective: 800px;
+  width: 100%;
+  height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#example-element {
+  width: 100px;
+  height: 100px;
+  perspective: 0;
+  transform-style: preserve-3d;
+  transform: scale3d(1.5, 1.5, 1.5) rotateX(-30deg) rotateY(45deg);
+  transition: transform 0.5s;
+  cursor: move;
+}
+.face {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  backface-visibility: inherit;
+  font-size: 30px;
+  color: transparent;
+  box-sizing: border-box;
+  --margin: 0.45rem;
+  --size: calc(33.33% - (var(--margin) / 3));
+}
+.row,
+.col {
+  display: block;
+  float: left;
+  box-sizing: border-box;
+  background-color: #000;
+}
+.row {
+  width: 100%;
+  clear: both;
+  height: 33.3333%;
+}
+.row .cubelet {
+  height: 100%;
+  width: var(--size);
+}
+.col {
+  height: 100%;
+  width: 33.3333%;
+}
+.col .cubelet {
+  width: 100%;
+  height: var(--size);
+}
+.cubelet {
+  display: block;
+  float: left;
+  border-radius: 4px;
+}
+.col,
+.row {
+  padding: calc(var(--margin) / 4);
+}
+.row .cubelet:not(:last-child) {
+  margin-right: calc(var(--margin) / 2);
+}
+.col .cubelet:not(:last-child) {
+  margin-bottom: calc(var(--margin) / 2);
+}
+
+.face.fake {
+  background-color: #000;
+}
+.face.fake-front {
+  transform: translateZ(16.3px);
+}
+.face.fake-back {
+  transform: rotateY(180deg) translateZ(16.3px);
+}
+.face.fake-right {
+  transform: rotateY(90deg) translateZ(16.3px);
+}
+.face.fake-left {
+  transform: rotateY(-90deg) translateZ(16.3px);
+}
+.face.fake-top {
+  transform: rotateX(90deg) translateZ(16.3px);
+}
+.face.fake-bottom {
+  transform: rotateX(-90deg) translateZ(16.3px);
+}
+.front .cubelet {
+  background: green;
+}
+.back .cubelet {
+  background: blue;
+}
+.right .cubelet {
+  background: red;
+}
+.left .cubelet {
+  background: orange;
+}
+.top .cubelet {
+  background: white;
+}
+.bottom .cubelet {
+  background: yellow;
+}
+.no-display,
+.face.fake:not(.active) {
+  opacity: 0 !important;
+}
