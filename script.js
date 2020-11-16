@@ -1,29 +1,13 @@
-const TRANSITION_TIME_S = 0.5;
-
-const containerElm = document.querySelector('#example-element');
-
 Object.prototype.clone = function () {
   return JSON.parse(JSON.stringify(this));
 };
 
-// perspective
-let x = 50;
-let y = 50;
-const update = () => {
-  document.querySelector('#default-example').setAttribute('style', `perspective-origin: ${x}% ${y}%;`);
-};
-document.getElementById('x').oninput = () => {
-  x = document.getElementById('x').value;
-  update();
-};
-document.getElementById('y').oninput = () => {
-  y = document.getElementById('y').value;
-  update();
-};
+let cubeContainerElm;
+let cubeElm;
 
-update();
+// variables
+const TRANSITION_TIME_S = 0.5;
 
-// rotation
 let facesDefaults = {
   front: {},
   back: { rotateY: 180 },
@@ -40,23 +24,90 @@ let facesCurrent = {
   top: {},
   bottom: {},
 };
-let facesType = {
-  front: 'front',
-  back: 'back',
-  right: 'right',
-  left: 'left',
-  top: 'top',
-  bottom: 'bottom',
+
+let defaultValues = 'translateZ(5em)';
+let defaultValuesFakeFace = 'translateZ(1.65em)';
+
+// create cube inside container
+const createCubeInsideContainer = (containerElm) => {
+  cubeContainerElm = document.createElement('div');
+  cubeContainerElm.classList.add('cube-container');
+
+  cubeElm = document.createElement('div');
+  cubeElm.classList.add('cube');
+
+  cubeElm.innerHTML = `
+  <div class="face front"></div>
+  <div class="face back"></div>
+  <div class="face right"></div>
+  <div class="face left"></div>
+  <div class="face top"></div>
+  <div class="face bottom"></div>
+
+  <div class="face fake fake-front"></div>
+  <div class="face fake fake-back"></div>
+  <div class="face fake fake-right"></div>
+  <div class="face fake fake-left"></div>
+  <div class="face fake fake-top"></div>
+  <div class="face fake fake-bottom"></div>
+
+  <div class="face fake front"></div>
+  <div class="face fake back"></div>
+  <div class="face fake right"></div>
+  <div class="face fake left"></div>
+  <div class="face fake top"></div>
+  <div class="face fake bottom"></div>
+  `;
+
+  cubeContainerElm.appendChild(cubeElm);
+
+  containerElm.appendChild(cubeContainerElm);
 };
 
-const swapXYZ = (value, newXYZ) => {
-  return newXYZ['XYZ'.indexOf(value)];
+// initialize cube
+const initializeCube = (middleRows = true, horizontalRows = true) => {
+  Array.from(document.querySelectorAll('.face')).forEach((e) => {
+    if (e.classList.contains('fake')) {
+      return;
+    }
+    const isRows = e.classList.contains('top') || e.classList.contains('bottom') ? horizontalRows : middleRows;
+    e.innerHTML = `<div class="${isRows ? 'row' : 'col'}">${'<div class="cubelet"></div>\n'.repeat(3)}</div>`.repeat(3);
+  });
 };
 
-let defaultValues = 'translateZ(50px)';
-let defaultValuesFakeFace = 'translateZ(16.5px)';
+// reset cube
+const resetCube = () => {
+  facesCurrent = {
+    front: {},
+    back: {},
+    right: {},
+    left: {},
+    top: {},
+    bottom: {},
+  };
+  document.querySelectorAll('.no-display').forEach((e) => {
+    e.classList.remove('no-display');
+  });
+  document.querySelectorAll('.face').forEach((e) => {
+    try {
+      e.classList.remove('can-move');
+    } catch (err) {}
+    if (e.classList.contains('cloned')) {
+      e.parentElement.removeChild(e);
+    }
+  });
+  try {
+    document.querySelectorAll('.face.fake.active').forEach((e) => e.classList.remove('active'));
+  } catch (err) {}
+  update3DPositioningOfFaces();
+};
 
-const updateFaces = (isAMove = false) => {
+// update 3D positioning of faces
+const update3DPositioningOfFaces = (isAMove = false) => {
+  const swapXYZ = (value, newXYZ) => {
+    return newXYZ['XYZ'.indexOf(value)];
+  };
+
   Object.keys(facesCurrent).forEach((key) => {
     const transforms = facesDefaults[key].clone();
     ['rotateX', 'rotateY', 'rotateZ'].forEach((k) => {
@@ -68,36 +119,36 @@ const updateFaces = (isAMove = false) => {
       const swap = (str) => {
         return swapXYZ(k[k.length - 1], str);
       };
-      if (facesType[key] === 'front') {
+      if (key === 'front') {
         transforms[k] += v;
-      } else if (facesType[key] === 'back') {
+      } else if (key === 'back') {
         if (k[k.length - 1] === 'Y') {
           transforms[k] += v;
         } else {
           transforms[k] -= v;
         }
-      } else if (facesType[key] === 'left') {
+      } else if (key === 'left') {
         const swapped = swap('ZYX');
         if (swapped === 'Z') {
           transforms[`rotate${swapped}`] -= v;
         } else {
           transforms[`rotate${swapped}`] += v;
         }
-      } else if (facesType[key] === 'right') {
+      } else if (key === 'right') {
         const swapped = swap('ZYX');
         if (swapped === 'X') {
           transforms[`rotate${swapped}`] -= v;
         } else {
           transforms[`rotate${swapped}`] += v;
         }
-      } else if (facesType[key] === 'top') {
+      } else if (key === 'top') {
         const swapped = swap('XZY');
         if (swapped === 'Z') {
           transforms[`rotate${swapped}`] -= v;
         } else {
           transforms[`rotate${swapped}`] += v;
         }
-      } else if (facesType[key] === 'bottom') {
+      } else if (key === 'bottom') {
         const swapped = swap('XZY');
         if (swapped === 'Y') {
           transforms[`rotate${swapped}`] -= v;
@@ -122,68 +173,9 @@ const updateFaces = (isAMove = false) => {
     });
   });
 };
-window.onload = () => {
-  updateFaces();
-};
 
-// rotate
-r = 45;
-ry = -30;
-
-document.onkeydown = (e) => {
-  if (e.key === 'ArrowLeft') {
-    r -= 15;
-  } else if (e.key === 'ArrowRight') {
-    r += 15;
-  } else if (e.key === 'ArrowUp') {
-    ry += 15;
-  } else if (e.key === 'ArrowDown') {
-    ry -= 15;
-  }
-  containerElm.setAttribute('style', `transform: scale3d(1.5, 1.5, 1.5) rotateX(${ry}deg) rotateY(${r}deg);`);
-};
-
-// set up rubik's cube
-const initCubeHTML = (middleRows = true, horizontalRows = true) => {
-  Array.from(document.querySelectorAll('.face')).forEach((e) => {
-    if (e.classList.contains('fake')) {
-      return;
-    }
-    const isRows = e.classList.contains('top') || e.classList.contains('bottom') ? horizontalRows : middleRows;
-    e.innerHTML = `<div class="${isRows ? 'row' : 'col'}">${'<div class="cubelet"></div>\n'.repeat(3)}</div>`.repeat(3);
-  });
-};
-
-initCubeHTML(false);
-
-const resetCube = () => {
-  facesCurrent = {
-    front: {},
-    back: {},
-    right: {},
-    left: {},
-    top: {},
-    bottom: {},
-  };
-  document.querySelectorAll('.no-display').forEach((e) => {
-    e.classList.remove('no-display');
-  });
-  document.querySelectorAll('.face').forEach((e) => {
-    try {
-      e.classList.remove('can-move');
-    } catch (err) {}
-    if (e.classList.contains('cloned')) {
-      e.parentElement.removeChild(e);
-    }
-  });
-  try {
-    document.querySelectorAll('.face.fake.active').forEach((e) => e.classList.remove('active'));
-  } catch (err) {}
-  updateFaces();
-};
-
-// move
-const move = (face, direction = 1) => {
+// move face
+const moveCubeFace = (face, direction = 1) => {
   const degrees = 90;
   const moveParts = {
     front: {
@@ -230,7 +222,7 @@ const move = (face, direction = 1) => {
     },
   };
 
-  initCubeHTML(moveParts[face].type[0] === 'rows', moveParts[face].type[1] === 'rows');
+  initializeCube(moveParts[face].type[0] === 'rows', moveParts[face].type[1] === 'rows');
 
   let rotateAxis = 'rotateZ';
   if (face === 'left' || face === 'right') {
@@ -277,11 +269,33 @@ const move = (face, direction = 1) => {
       });
       newElm.classList.add('cloned');
       oldElm.classList.add('can-move');
-      containerElm.appendChild(newElm);
+      cubeElm.appendChild(newElm);
     }
   });
 
-  updateFaces(true);
+  update3DPositioningOfFaces(true);
 
   setTimeout(resetCube, TRANSITION_TIME_S * 1000 + 1);
 };
+
+// rotate camera
+let cameraPosition = [45, -30];
+
+document.onkeydown = (e) => {
+  if (e.key === 'ArrowLeft') {
+    cameraPosition[0] -= 15;
+  } else if (e.key === 'ArrowRight') {
+    cameraPosition[0] += 15;
+  } else if (e.key === 'ArrowUp') {
+    cameraPosition[1] += 15;
+  } else if (e.key === 'ArrowDown') {
+    cameraPosition[1] -= 15;
+  }
+  cubeElm.setAttribute('style', `transform: rotateX(${cameraPosition[1]}deg) rotateY(${cameraPosition[0]}deg);`);
+};
+
+window.addEventListener('load', () => {
+  createCubeInsideContainer(document.querySelector('.container'));
+  initializeCube();
+  update3DPositioningOfFaces();
+});
