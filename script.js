@@ -8,35 +8,21 @@ let cubeElm;
 // variables
 
 class Cube {
-  constructor(transitionTimeS, containerElm) {
+  constructor(transitionTimeS, containerElm, cubeData) {
+    const directions = ['front', 'back', 'right', 'left', 'top', 'bottom'];
+
+    this.cubeData = cubeData;
     this.cubeContainerElm = document.createElement('div');
     this.cubeContainerElm.classList.add('cube-container');
 
     this.cubeElm = document.createElement('div');
     this.cubeElm.classList.add('cube');
 
-    this.cubeElm.innerHTML = `
-    <div class="face front"></div>
-    <div class="face back"></div>
-    <div class="face right"></div>
-    <div class="face left"></div>
-    <div class="face top"></div>
-    <div class="face bottom"></div>
-  
-    <div class="face fake fake-front"></div>
-    <div class="face fake fake-back"></div>
-    <div class="face fake fake-right"></div>
-    <div class="face fake fake-left"></div>
-    <div class="face fake fake-top"></div>
-    <div class="face fake fake-bottom"></div>
-  
-    <div class="face fake front"></div>
-    <div class="face fake back"></div>
-    <div class="face fake right"></div>
-    <div class="face fake left"></div>
-    <div class="face fake top"></div>
-    <div class="face fake bottom"></div>
-    `;
+    this.cubeElm.innerHTML =
+      directions.map((e) => `<div class="face ${e}"></div>`).join('') +
+      directions.map((e) => `<div class="face fake fake-${e}"></div>`).join('') +
+      directions.map((e) => `<div class="face fake ${e}"></div>`).join('');
+
     this.cubeContainerElm.appendChild(this.cubeElm);
     containerElm.appendChild(this.cubeContainerElm);
 
@@ -50,7 +36,7 @@ class Cube {
       top: { rotateX: 90 },
       bottom: { rotateX: -90 },
     };
-    this.currentFacesTransforms = {
+    this.defaultCurrentFacesTransforms = {
       front: {},
       back: {},
       right: {},
@@ -58,6 +44,7 @@ class Cube {
       top: {},
       bottom: {},
     };
+    this.currentFacesTransforms = this.defaultCurrentFacesTransforms.clone();
     this.allFacesDefaultTransforms = 'translateZ(5em)';
     this.allFacesDefaultTransformsFakeFace = 'translateZ(1.65em)';
     this.cameraPosition = [45, -30];
@@ -68,25 +55,41 @@ class Cube {
 
   // initialize cube
   initializeCube(middleRows = true, horizontalRows = true) {
+    const possibleFaces = ['front', 'back', 'left', 'right', 'top', 'bottom'];
     Array.from(this.cubeElm.querySelectorAll('.face')).forEach((e) => {
       if (e.classList.contains('fake')) {
         return;
       }
       const isRows = e.classList.contains('top') || e.classList.contains('bottom') ? horizontalRows : middleRows;
-      e.innerHTML = `<div class="${isRows ? 'row' : 'col'}">${'<div class="cubelet"></div>\n'.repeat(3)}</div>`.repeat(3);
+      let newInnerHTML = '';
+      possibleFaces.forEach((f) => {
+        if (e.classList.contains(f)) {
+          if (isRows) {
+            for (let row = 0; row < 3; row++) {
+              newInnerHTML += "<div class='row'>";
+              for (let col = 0; col < 3; col++) {
+                newInnerHTML += `<div class='cubelet ${this.cubeData[f][row][col]}'></div>`;
+              }
+              newInnerHTML += '</div>';
+            }
+          } else {
+            for (let col = 0; col < 3; col++) {
+              newInnerHTML += "<div class='col'>";
+              for (let row = 0; row < 3; row++) {
+                newInnerHTML += `<div class='cubelet ${this.cubeData[f][row][col]}'></div>`;
+              }
+              newInnerHTML += '</div>';
+            }
+          }
+        }
+      });
+      e.innerHTML = newInnerHTML;
     });
   }
 
   // reset cube
   resetCube(self) {
-    self.currentFacesTransforms = {
-      front: {},
-      back: {},
-      right: {},
-      left: {},
-      top: {},
-      bottom: {},
-    };
+    self.currentFacesTransforms = self.defaultCurrentFacesTransforms.clone();
 
     self.cubeElm.querySelectorAll('.no-display').forEach((e) => {
       e.classList.remove('no-display');
@@ -280,6 +283,7 @@ class Cube {
 
     setTimeout(() => {
       this.resetCube(this);
+      this.initializeCube();
     }, this.TRANSITION_TIME_S * 1000 + 1);
   }
   updateCamera(changeX, changeY) {
@@ -293,23 +297,53 @@ let cube1;
 let cube2;
 
 window.addEventListener('load', () => {
-  cube1 = new Cube(0.5, document.querySelector('.cube1'));
-  cube2 = new Cube(0.5, document.querySelector('.cube2'));
+  const cubeData = {
+    front: [
+      ['green', 'green', 'green'],
+      ['green', 'green', 'green'],
+      ['green', 'green', 'green'],
+    ],
+    back: [
+      ['blue', 'blue', 'blue'],
+      ['blue', 'blue', 'blue'],
+      ['blue', 'blue', 'blue'],
+    ],
+    left: [
+      ['orange', 'orange', 'orange'],
+      ['orange', 'orange', 'orange'],
+      ['orange', 'orange', 'orange'],
+    ],
+    right: [
+      ['red', 'red', 'red'],
+      ['red', 'red', 'red'],
+      ['red', 'red', 'red'],
+    ],
+    top: [
+      ['white', 'white', 'white'],
+      ['white', 'white', 'white'],
+      ['white', 'white', 'white'],
+    ],
+    bottom: [
+      ['yellow', 'yellow', 'yellow'],
+      ['yellow', 'yellow', 'yellow'],
+      ['yellow', 'yellow', 'yellow'],
+    ],
+  };
+
+  cube1 = new Cube(0.5, document.querySelector('.cube1'), cubeData.clone());
+  cube2 = new Cube(0.5, document.querySelector('.cube2'), cubeData.clone());
   cube2.updateCamera(180, 0);
 });
 
 document.onkeydown = (e) => {
-  if (e.key === 'ArrowUp') {
-    cube1.updateCamera(15, 0);
-    cube2.updateCamera(15, 0);
-  } else if (e.key === 'ArrowDown') {
-    cube1.updateCamera(-15, 0);
-    cube2.updateCamera(-15, 0);
-  } else if (e.key === 'ArrowLeft') {
-    cube1.updateCamera(0, -15);
-    cube2.updateCamera(0, -15);
-  } else if (e.key === 'ArrowRight') {
-    cube1.updateCamera(0, 15);
-    cube2.updateCamera(0, 15);
+  const updates = {
+    ArrowUp: [15, 0],
+    ArrowDown: [-15, 0],
+    ArrowLeft: [0, -15],
+    ArrowRight: [0, 15],
+  };
+  const change = updates[e.key];
+  if (change) {
+    [cube1, cube2].forEach((e) => e.updateCamera(change[0], change[1]));
   }
 };

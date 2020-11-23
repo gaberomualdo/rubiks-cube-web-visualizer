@@ -68,10 +68,33 @@
   height: var(--size);
 }
 
+.cube-container > .cube > .face > .col:first-child > .cubelet,
+.cube-container > .cube > .face > .row > .cubelet:first-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.cube-container > .cube > .face > .col:last-child > .cubelet,
+.cube-container > .cube > .face > .row > .cubelet:last-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.cube-container > .cube > .face > .col > .cubelet:last-child,
+.cube-container > .cube > .face > .row:last-child > .cubelet {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.cube-container > .cube > .face > .col > .cubelet:first-child,
+.cube-container > .cube > .face > .row:first-child > .cubelet {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
 .cube-container > .cube > .face > * > .cubelet {
   display: block;
   float: left;
-  border-radius: 8px;
+  border-radius: 16px;
 }
 
 .cube-container > .cube > .face > .col,
@@ -114,21 +137,21 @@
 }
 
 /* temporary styling */
-.front .cubelet {
-  background: green;
+.cube-container > .cube .cubelet.green {
+  background: #4af961;
 }
-.back .cubelet {
-  background: blue;
+.cube-container > .cube .cubelet.blue {
+  background: #3ac2fe;
 }
-.right .cubelet {
-  background: red;
+.cube-container > .cube .cubelet.red {
+  background: #ec6164;
 }
-.left .cubelet {
-  background: orange;
+.cube-container > .cube .cubelet.orange {
+  background: #f9802a;
 }
-.top .cubelet {
-  background: white;
+.cube-container > .cube .cubelet.white {
+  background: #e3e3db;
 }
-.bottom .cubelet {
-  background: yellow;
+.cube-container > .cube .cubelet.yellow {
+  background: #cef756;
 }
